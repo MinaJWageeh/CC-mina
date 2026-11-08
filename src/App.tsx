@@ -20,6 +20,7 @@ import { LaserOverlay } from './canvas/renderers/LaserOverlay';
 import { MultimeterTool } from './canvas/tools/MultimeterTool';
 import { ExamplesDialog } from './components/dialogs/ExamplesDialog';
 import { ExportDialog } from './components/dialogs/ExportDialog';
+import { HelpDialog } from './components/dialogs/HelpDialog';
 import { easyCircuits } from './examples/easyCircuits';
 import { translations } from './i18n/translations';
 
@@ -46,6 +47,7 @@ export const App: React.FC = () => {
   // Modals
   const [isExamplesOpen, setIsExamplesOpen] = useState<boolean>(false);
   const [isExportOpen, setIsExportOpen] = useState<boolean>(false);
+  const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
 
   // Hover Tooltip State
   const [hoveredTerminalId, setHoveredTerminalId] = useState<string | null>(null);
@@ -133,6 +135,12 @@ export const App: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't capture shortcuts if typing in input field
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
+        return;
+      }
+
+      if (e.key === 'F1') {
+        e.preventDefault();
+        setIsHelpOpen((prev) => !prev);
         return;
       }
 
@@ -356,6 +364,7 @@ export const App: React.FC = () => {
         onRedo={() => {}}
         onOpenExamples={() => setIsExamplesOpen(true)}
         onExport={() => setIsExportOpen(true)}
+        onOpenHelp={() => setIsHelpOpen(true)}
       />
 
       {/* Main Workspace Body */}
@@ -495,6 +504,12 @@ export const App: React.FC = () => {
         isOpen={isExportOpen}
         onClose={() => setIsExportOpen(false)}
         project={graphRef.current.toProject()}
+        lang={lang}
+      />
+
+      <HelpDialog
+        isOpen={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
         lang={lang}
       />
     </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { SimulationMode } from '../../core/types/circuit';
 import { translations } from '../../i18n/translations';
+import { AppIcon } from '../common/AppIcon';
 
 interface AppHeaderProps {
   mode: SimulationMode;
@@ -26,6 +27,7 @@ interface AppHeaderProps {
   onRedo: () => void;
   onOpenExamples: () => void;
   onExport: () => void;
+  onOpenHelp: () => void;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -52,6 +54,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onRedo,
   onOpenExamples,
   onExport,
+  onOpenHelp,
 }) => {
   const t = translations[lang];
 
@@ -64,9 +67,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     >
       {/* Brand & Title */}
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center font-bold text-white shadow-md">
-          ⚡
-        </div>
+        <AppIcon className="w-8 h-8 rounded-xl shadow-md shadow-sky-500/25 shrink-0" />
         <div>
           <h1 className="text-sm font-bold text-slate-100 flex items-center gap-2">
             <span>{t.appTitle}</span>
@@ -226,6 +227,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         >
           <span>📚</span>
           <span>{t.examples}</span>
+        </button>
+
+        {/* Help & Guide */}
+        <button
+          onClick={onOpenHelp}
+          className="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 font-semibold transition-all border border-slate-700 flex items-center gap-1 shadow"
+          title={t.help}
+        >
+          <span>❓</span>
+          <span className="hidden sm:inline">{t.help}</span>
         </button>
 
         {/* Export */}

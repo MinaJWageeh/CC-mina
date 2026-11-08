@@ -26,6 +26,16 @@ export interface TranslationDictionary {
   laserPen: string;
   multimeter: string;
   clearLaser: string;
+  help: string;
+  helpModal: {
+    title: string;
+    subtitle: string;
+    tabQuickStart: string;
+    tabWiring: string;
+    tabComponents: string;
+    tabTools: string;
+    tabShortcuts: string;
+  };
   categories: {
     power: string;
     protection: string;
@@ -116,6 +126,16 @@ export const translations: Record<'ar' | 'en', TranslationDictionary> = {
     laserPen: 'قلم الشرح الفسفوري',
     multimeter: 'جهاز الأفوميتر',
     clearLaser: 'مسح الرسم',
+    help: 'دليل الاستخدام',
+    helpModal: {
+      title: 'دليل استخدام Classic Control Studio',
+      subtitle: 'دليلك الشامل لتعلم وتصميم ومحاكاة دوائر التحكم الآلي والكلاسيك كنترول',
+      tabQuickStart: '⚡ البداية السريعة',
+      tabWiring: '🔌 توصيل الأسلاك والتفريعات',
+      tabComponents: '🔘 العناصر والتحكم اللحظي',
+      tabTools: '📟 أجهزة القياس والشرح',
+      tabShortcuts: '⌨️ اختصارات الكيبورد',
+    },
     categories: {
       power: 'مصادر القدرة والتغذية',
       protection: 'القواطع والحماية',
@@ -204,6 +224,16 @@ export const translations: Record<'ar' | 'en', TranslationDictionary> = {
     laserPen: 'Laser Highlighter',
     multimeter: 'Virtual Multimeter',
     clearLaser: 'Clear Ink',
+    help: 'User Guide & Help',
+    helpModal: {
+      title: 'Classic Control Studio User Guide',
+      subtitle: 'Complete manual for designing, simulating, and teaching industrial control circuits',
+      tabQuickStart: '⚡ Quick Start',
+      tabWiring: '🔌 Wiring & Branching',
+      tabComponents: '🔘 Components & Controls',
+      tabTools: '📟 Instruments & Tools',
+      tabShortcuts: '⌨️ Shortcuts',
+    },
     categories: {
       power: 'Power Sources',
       protection: 'Circuit Breakers & Protection',
