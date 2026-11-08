@@ -211,7 +211,51 @@ export const App: React.FC = () => {
     forceUpdate();
   };
 
-  // Toggle component state in Run mode (pushbuttons, switches, overloads, breakers)
+  // Pushbutton Momentary Press Down (Run mode)
+  const handlePushbuttonDown = (componentId: string) => {
+    if (mode !== 'run') return;
+    const comp = graphRef.current.components.get(componentId);
+    if (!comp) return;
+    comp.state.pressed = true;
+    soundManager.playContactorSnap();
+    DeviceEvaluator.evaluateStep(graphRef.current, 0.05);
+    forceUpdate();
+  };
+
+  // Pushbutton Momentary Release (Run mode: on mouseup, mouseleave, or global window mouseup)
+  const handlePushbuttonUp = (componentId?: string) => {
+    if (mode !== 'run') return;
+    let changed = false;
+    if (componentId) {
+      const comp = graphRef.current.components.get(componentId);
+      if (comp && comp.state.pressed) {
+        comp.state.pressed = false;
+        changed = true;
+      }
+    } else {
+      for (const comp of graphRef.current.components.values()) {
+        if ((comp.type === 'pushbutton_no' || comp.type === 'pushbutton_nc') && comp.state.pressed) {
+          comp.state.pressed = false;
+          changed = true;
+        }
+      }
+    }
+    if (changed) {
+      DeviceEvaluator.evaluateStep(graphRef.current, 0.05);
+      forceUpdate();
+    }
+  };
+
+  // Global window mouseup listener to prevent pushbuttons from getting stuck
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      handlePushbuttonUp();
+    };
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, [mode]);
+
+  // Toggle component state in Run mode (switches, overloads, breakers - NOT momentary buttons)
   const handleToggleComponentState = (componentId: string) => {
     const comp = graphRef.current.components.get(componentId);
     if (!comp) return;
@@ -219,9 +263,9 @@ export const App: React.FC = () => {
     const def = COMPONENT_CATALOG[comp.type];
     if (!def) return;
 
+    // Push buttons are handled by onPushbuttonDown / onPushbuttonUp
     if (comp.type === 'pushbutton_no' || comp.type === 'pushbutton_nc') {
-      comp.state.pressed = !comp.state.pressed;
-      soundManager.playContactorSnap();
+      return;
     } else if (comp.type === 'emergency_stop') {
       comp.state.latched = !comp.state.latched;
       soundManager.playContactorSnap();
@@ -357,10 +401,17 @@ export const App: React.FC = () => {
             }}
             onHoverTerminal={setHoveredTerminalId}
             onToggleComponentState={handleToggleComponentState}
+            onPushbuttonDown={handlePushbuttonDown}
+            onPushbuttonUp={handlePushbuttonUp}
           />
 
-          {/* Ephemeral Presentation Laser Highlighter Overlay */}
-          <LaserOverlay active={laserActive} clearTrigger={clearLaserTrigger} />
+          {/* Ephemeral Presentation Laser Highlighter & Persistent Pen Overlay */}
+          <LaserOverlay
+            active={laserActive}
+            clearTrigger={clearLaserTrigger}
+            onClose={() => setLaserActive(false)}
+            lang={lang}
+          />
 
           {/* Virtual Multimeter Floating Tool */}
           <MultimeterTool

@@ -7,6 +7,7 @@ interface MotorRendererProps {
   isSelected: boolean;
   animTime: number;
   onTerminalMouseDown: (terminalId: string, e: React.MouseEvent) => void;
+  onTerminalMouseUp?: (terminalId: string, e: React.MouseEvent) => void;
   onTerminalMouseEnter?: (terminalId: string) => void;
   onTerminalMouseLeave?: () => void;
 }
@@ -16,6 +17,7 @@ export const MotorRenderer: React.FC<MotorRendererProps> = ({
   isSelected,
   animTime,
   onTerminalMouseDown,
+  onTerminalMouseUp,
   onTerminalMouseEnter,
   onTerminalMouseLeave,
 }) => {
@@ -136,6 +138,7 @@ export const MotorRenderer: React.FC<MotorRendererProps> = ({
           <div
             key={term.id}
             onMouseDown={(e) => onTerminalMouseDown(term.id, e)}
+            onMouseUp={(e) => onTerminalMouseUp?.(term.id, e)}
             onMouseEnter={() => onTerminalMouseEnter?.(term.id)}
             onMouseLeave={onTerminalMouseLeave}
             className={`absolute w-3.5 h-3.5 -ml-1.5 -mt-1.5 rounded-full border cursor-crosshair flex items-center justify-center transition-all ${

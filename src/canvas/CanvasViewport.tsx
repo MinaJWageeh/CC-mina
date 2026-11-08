@@ -16,6 +16,8 @@ interface CanvasViewportProps {
   onGraphChanged: () => void;
   onHoverTerminal?: (terminalId: string | null) => void;
   onToggleComponentState?: (componentId: string) => void;
+  onPushbuttonDown?: (componentId: string) => void;
+  onPushbuttonUp?: (componentId: string) => void;
 }
 
 export const CanvasViewport: React.FC<CanvasViewportProps> = ({
@@ -30,6 +32,8 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
   onGraphChanged,
   onHoverTerminal,
   onToggleComponentState,
+  onPushbuttonDown,
+  onPushbuttonUp,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -316,6 +320,26 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
     }
   };
 
+  // Terminal click or drag-drop to complete wire
+  const handleTerminalMouseUp = (terminalId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (activeWireStart && (activeWireStart.type !== 'terminal' || activeWireStart.id !== terminalId)) {
+      const newWire: Wire = {
+        id: 'W_' + Math.random().toString(36).substr(2, 9),
+        from: activeWireStart,
+        to: { type: 'terminal', id: terminalId },
+        waypoints: [],
+        routingMode: isShiftPressed ? 'ortho' : 'free',
+        netId: null,
+        potential: 'NONE',
+        hasCurrent: false,
+      };
+      graph.addWire(newWire);
+      setActiveWireStart(null);
+      onGraphChanged();
+    }
+  };
+
   // Component Drag Start
   const handleComponentMouseDown = (comp: DeviceComponent, e: React.MouseEvent) => {
     if (mode === 'run') return; // In run mode, do not move components
@@ -337,6 +361,12 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onWheel={handleWheel}
+      onContextMenu={(e) => {
+        if (activeWireStart) {
+          e.preventDefault();
+          setActiveWireStart(null);
+        }
+      }}
       className="relative w-full h-full overflow-hidden bg-industrial-950 cursor-default select-none"
     >
       {/* Background Canvas for Grid, Glowing Wires & Junction Dots */}
@@ -365,9 +395,12 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
               mode={mode}
               animTime={animTime}
               onTerminalMouseDown={handleTerminalMouseDown}
+              onTerminalMouseUp={handleTerminalMouseUp}
               onTerminalMouseEnter={onHoverTerminal}
               onTerminalMouseLeave={() => onHoverTerminal?.(null)}
               onToggleState={onToggleComponentState}
+              onPushbuttonDown={onPushbuttonDown}
+              onPushbuttonUp={onPushbuttonUp}
             />
           </div>
         ))}

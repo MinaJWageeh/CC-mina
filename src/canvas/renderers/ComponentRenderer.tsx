@@ -9,9 +9,12 @@ interface ComponentRendererProps {
   mode: SimulationMode;
   animTime: number;
   onTerminalMouseDown: (terminalId: string, e: React.MouseEvent) => void;
+  onTerminalMouseUp?: (terminalId: string, e: React.MouseEvent) => void;
   onTerminalMouseEnter?: (terminalId: string) => void;
   onTerminalMouseLeave?: () => void;
   onToggleState?: (componentId: string) => void;
+  onPushbuttonDown?: (componentId: string) => void;
+  onPushbuttonUp?: (componentId: string) => void;
 }
 
 export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
@@ -20,9 +23,12 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
   mode,
   animTime,
   onTerminalMouseDown,
+  onTerminalMouseUp,
   onTerminalMouseEnter,
   onTerminalMouseLeave,
   onToggleState,
+  onPushbuttonDown,
+  onPushbuttonUp,
 }) => {
   // If motor, use specialized motor renderer
   if (component.type.startsWith('motor_')) {
@@ -42,10 +48,30 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
   const w = def?.width || 60;
   const h = def?.height || 70;
   const state = component.state || {};
+  const isMomentaryButton = component.type === 'pushbutton_no' || component.type === 'pushbutton_nc';
 
-  const handleComponentClick = (e: React.MouseEvent) => {
-    // In Run mode, allow clicking buttons / switches / toggles
-    if (mode === 'run' && def?.hasStateToggle && onToggleState) {
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (mode === 'run' && isMomentaryButton && onPushbuttonDown) {
+      e.stopPropagation();
+      onPushbuttonDown(component.id);
+    }
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (mode === 'run' && isMomentaryButton && onPushbuttonUp) {
+      e.stopPropagation();
+      onPushbuttonUp(component.id);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (mode === 'run' && isMomentaryButton && onPushbuttonUp) {
+      onPushbuttonUp(component.id);
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (mode === 'run' && !isMomentaryButton && def?.hasStateToggle && onToggleState) {
       e.stopPropagation();
       onToggleState(component.id);
     }
@@ -53,7 +79,10 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
 
   return (
     <div
-      onClick={handleComponentClick}
+      onClick={handleClick}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
       className={`relative select-none bg-industrial-900/90 border rounded-lg transition-all ${
         isSelected
           ? 'border-sky-400 ring-2 ring-sky-400/40 shadow-lg shadow-sky-500/20'
@@ -188,42 +217,83 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
           </div>
         ) : null}
 
-        {/* Push Buttons */}
+        {/* Start Push Button (Momentary NO) */}
         {component.type === 'pushbutton_no' ? (
           <div className="flex flex-col items-center justify-center w-full mt-2">
             <div
-              className={`w-7 h-7 rounded-full border-2 transition-transform ${
+              className={`w-8 h-8 rounded-full border-2 transition-transform flex items-center justify-center ${
                 state.pressed
-                  ? 'scale-90 bg-emerald-500 border-white shadow-glow-green'
-                  : 'bg-emerald-600/80 border-emerald-400 hover:scale-105'
+                  ? 'scale-90 bg-emerald-500 border-white shadow-glow-green ring-2 ring-emerald-300'
+                  : 'bg-emerald-600/90 border-emerald-400 hover:scale-105'
               }`}
-            />
+            >
+              <span className="text-[9px] font-bold text-white uppercase pointer-events-none">
+                {state.pressed ? 'IN' : 'START'}
+              </span>
+            </div>
           </div>
         ) : null}
 
+        {/* Stop Push Button (Momentary NC) */}
         {component.type === 'pushbutton_nc' ? (
           <div className="flex flex-col items-center justify-center w-full mt-2">
             <div
-              className={`w-7 h-7 rounded-full border-2 transition-transform ${
+              className={`w-8 h-8 rounded-full border-2 transition-transform flex items-center justify-center ${
                 state.pressed
-                  ? 'scale-90 bg-rose-500 border-white shadow-glow-red'
-                  : 'bg-rose-600/80 border-rose-400 hover:scale-105'
+                  ? 'scale-90 bg-rose-500 border-white shadow-glow-red ring-2 ring-rose-300'
+                  : 'bg-rose-600/90 border-rose-400 hover:scale-105'
               }`}
-            />
+            >
+              <span className="text-[9px] font-bold text-white uppercase pointer-events-none">
+                {state.pressed ? 'IN' : 'STOP'}
+              </span>
+            </div>
           </div>
         ) : null}
 
+        {/* Emergency Stop Latching Mushroom Button */}
         {component.type === 'emergency_stop' ? (
           <div className="flex flex-col items-center justify-center w-full mt-2">
             <div
-              className={`w-8 h-8 rounded-full border-3 flex items-center justify-center transition-all ${
+              className={`w-9 h-9 rounded-full border-3 flex items-center justify-center transition-all ${
                 state.latched
-                  ? 'bg-rose-700 border-yellow-400 shadow-glow-red scale-95'
+                  ? 'bg-rose-700 border-yellow-400 shadow-glow-red scale-95 ring-2 ring-rose-400'
                   : 'bg-rose-600 border-rose-300 hover:scale-105'
               }`}
             >
-              <div className="w-2 h-2 rounded-full bg-yellow-300" />
+              <div className="w-2.5 h-2.5 rounded-full bg-yellow-300" />
             </div>
+          </div>
+        ) : null}
+
+        {/* Selector Switches */}
+        {component.type === 'selector_2pos' ? (
+          <div className="flex flex-col items-center justify-center w-full mt-2">
+            <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center">
+              <div
+                className={`w-1 h-5 bg-amber-400 rounded transition-transform ${
+                  state.selectorPosition === 1 ? 'rotate-45' : '-rotate-45'
+                }`}
+              />
+            </div>
+            <span className="text-[8px] text-slate-400 font-mono mt-0.5">
+              {state.selectorPosition === 1 ? 'POS 1' : 'POS 0'}
+            </span>
+          </div>
+        ) : null}
+
+        {component.type === 'selector_3pos_hoa' ? (
+          <div className="flex flex-col items-center justify-center w-full mt-1">
+            <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center">
+              <div
+                className={`w-1 h-5 bg-sky-400 rounded transition-transform ${
+                  state.selectorPosition === 1 ? '-rotate-45' : state.selectorPosition === 2 ? 'rotate-45' : 'rotate-0'
+                }`}
+              />
+            </div>
+            <span className="text-[8px] text-slate-300 font-bold font-mono mt-0.5">
+              {state.selectorPosition === 1 ? 'HAND' : state.selectorPosition === 2 ? 'AUTO' : 'OFF'}
+            </span>
           </div>
         ) : null}
 
@@ -246,13 +316,13 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
         {component.type === 'buzzer_alarm' ? (
           <div className="flex flex-col items-center justify-center w-full mt-2">
             <div
-              className={`w-7 h-7 rounded-sm border-2 flex items-center justify-center transition-all ${
+              className={`w-8 h-8 rounded-sm border-2 flex items-center justify-center transition-all ${
                 state.energized
                   ? 'bg-rose-500 border-amber-300 shadow-glow-red animate-pulse'
                   : 'bg-slate-800 border-slate-600'
               }`}
             >
-              <span className="text-[10px]">📢</span>
+              <span className="text-xs">📢</span>
             </div>
           </div>
         ) : null}
@@ -265,6 +335,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
           <div
             key={term.id}
             onMouseDown={(e) => onTerminalMouseDown(term.id, e)}
+            onMouseUp={(e) => onTerminalMouseUp?.(term.id, e)}
             onMouseEnter={() => onTerminalMouseEnter?.(term.id)}
             onMouseLeave={onTerminalMouseLeave}
             className={`absolute w-3.5 h-3.5 -ml-1.5 -mt-1.5 rounded-full border cursor-crosshair flex items-center justify-center transition-all ${
