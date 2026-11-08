@@ -6,6 +6,7 @@ import { AppIcon } from '../common/AppIcon';
 interface AppHeaderProps {
   mode: SimulationMode;
   lang: 'ar' | 'en';
+  theme: 'dark' | 'light';
   isSimRunning: boolean;
   simSpeed: number;
   isMuted: boolean;
@@ -19,6 +20,7 @@ interface AppHeaderProps {
   onResetSim: () => void;
   onSetSpeed: (speed: number) => void;
   onToggleLanguage: () => void;
+  onToggleTheme: () => void;
   onToggleAudio: () => void;
   onToggleLaser: () => void;
   onClearLaser: () => void;
@@ -33,6 +35,7 @@ interface AppHeaderProps {
 export const AppHeader: React.FC<AppHeaderProps> = ({
   mode,
   lang,
+  theme,
   isSimRunning,
   simSpeed,
   isMuted,
@@ -46,6 +49,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onResetSim,
   onSetSpeed,
   onToggleLanguage,
+  onToggleTheme,
   onToggleAudio,
   onToggleLaser,
   onClearLaser,
@@ -57,12 +61,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenHelp,
 }) => {
   const t = translations[lang];
+  const isLight = theme === 'light';
 
   return (
     <header
-      className={`h-14 bg-industrial-900 border-b border-slate-800 flex items-center justify-between px-4 z-30 select-none ${
-        lang === 'ar' ? 'font-cairo' : 'font-sans'
-      }`}
+      className={`h-14 border-b flex items-center justify-between px-4 z-30 select-none transition-colors duration-200 ${
+        isLight
+          ? 'bg-white border-slate-200 text-slate-800'
+          : 'bg-industrial-900 border-slate-800 text-slate-100'
+      } ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
     >
       {/* Brand & Title */}
@@ -248,10 +255,28 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           💾
         </button>
 
+        {/* Theme Toggle Button (Day / Night) */}
+        <button
+          onClick={onToggleTheme}
+          className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all flex items-center gap-1.5 shadow ${
+            isLight
+              ? 'bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-300'
+              : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-700'
+          }`}
+          title={isLight ? t.themeDark : t.themeLight}
+        >
+          <span>{isLight ? '☀️' : '🌙'}</span>
+          <span className="hidden md:inline">{isLight ? t.themeLight : t.themeDark}</span>
+        </button>
+
         {/* Language Toggle Button */}
         <button
           onClick={onToggleLanguage}
-          className="px-2 py-1 text-xs font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 font-mono"
+          className={`px-2 py-1 text-xs font-bold rounded-lg border font-mono transition-all ${
+            isLight
+              ? 'bg-white hover:bg-slate-100 text-sky-600 border-slate-300 shadow-sm'
+              : 'bg-slate-800 hover:bg-slate-700 text-sky-400 border-slate-700'
+          }`}
         >
           {lang === 'ar' ? 'EN' : 'عربي'}
         </button>

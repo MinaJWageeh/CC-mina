@@ -8,6 +8,7 @@ interface ComponentRendererProps {
   isSelected: boolean;
   mode: SimulationMode;
   animTime: number;
+  theme?: 'dark' | 'light';
   onTerminalMouseDown: (terminalId: string, e: React.MouseEvent) => void;
   onTerminalMouseUp?: (terminalId: string, e: React.MouseEvent) => void;
   onTerminalMouseEnter?: (terminalId: string) => void;
@@ -22,6 +23,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
   isSelected,
   mode,
   animTime,
+  theme = 'dark',
   onTerminalMouseDown,
   onTerminalMouseUp,
   onTerminalMouseEnter,
@@ -77,16 +79,24 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
     }
   };
 
+  const isLight = theme === 'light';
+
   return (
     <div
       onClick={handleClick}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseLeave}
-      className={`relative select-none bg-industrial-900/90 border rounded-lg transition-all ${
+      className={`relative select-none border rounded-xl transition-all ${
+        isLight
+          ? 'bg-white/95 border-slate-300 text-slate-800 shadow-sm'
+          : 'bg-industrial-900/90 border-slate-700/80 text-slate-100'
+      } ${
         isSelected
-          ? 'border-sky-400 ring-2 ring-sky-400/40 shadow-lg shadow-sky-500/20'
-          : 'border-slate-700/80 hover:border-slate-500'
+          ? 'border-sky-400 ring-2 ring-sky-400/50 shadow-lg shadow-sky-500/20'
+          : isLight
+          ? 'hover:border-slate-400'
+          : 'hover:border-slate-500'
       } ${mode === 'run' && def?.hasStateToggle ? 'cursor-pointer' : 'cursor-move'}`}
       style={{
         width: w,
@@ -96,11 +106,15 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
     >
       {/* Component Header / Tag Badge */}
       <div className="absolute top-1 left-1 right-1 flex justify-between items-center px-1 pointer-events-none">
-        <span className="text-[10px] font-bold text-sky-400 font-mono tracking-tight">
+        <span className={`text-[10px] font-bold font-mono tracking-tight ${isLight ? 'text-sky-600' : 'text-sky-400'}`}>
           {component.tag}
         </span>
         {component.masterTag && (
-          <span className="text-[8px] font-mono text-amber-400 bg-amber-950/60 px-1 rounded border border-amber-800">
+          <span className={`text-[8px] font-mono px-1 rounded border ${
+            isLight
+              ? 'text-amber-700 bg-amber-50 border-amber-300'
+              : 'text-amber-400 bg-amber-950/60 border-amber-800'
+          }`}>
             {component.masterTag}
           </span>
         )}

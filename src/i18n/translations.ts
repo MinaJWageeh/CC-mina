@@ -20,6 +20,8 @@ export interface TranslationDictionary {
   exportPng: string;
   soundOn: string;
   soundOff: string;
+  themeLight: string;
+  themeDark: string;
   langEn: string;
   langAr: string;
   presentationMode: string;
@@ -67,10 +69,13 @@ export interface TranslationDictionary {
   multimeterModal: {
     title: string;
     acVoltage: string;
+    acCurrent: string;
     dcVoltage: string;
     continuity: string;
     probeRed: string;
     probeBlack: string;
+    clampTarget: string;
+    clampDesc: string;
     notConnected: string;
   };
   examplesModal: {
@@ -120,6 +125,8 @@ export const translations: Record<'ar' | 'en', TranslationDictionary> = {
     exportPng: 'تصدير صورة PNG',
     soundOn: 'كتم الصوت',
     soundOff: 'تشغيل الصوت',
+    themeLight: 'الوضع النهاري',
+    themeDark: 'الوضع الليلي',
     langEn: 'English',
     langAr: 'العربية',
     presentationMode: 'وضع الشرح والعرض',
@@ -165,12 +172,15 @@ export const translations: Record<'ar' | 'en', TranslationDictionary> = {
       closed: 'مغلق',
     },
     multimeterModal: {
-      title: 'الأفوميتر الافتراضي (Multimeter)',
-      acVoltage: 'جهد متردد (AC)',
-      dcVoltage: 'جهد مستمر (DC)',
-      continuity: 'فحص التوصيل (Buzzer)',
+      title: 'الأفوميتر وبنسة الأمبير (Multimeter & Clamp)',
+      acVoltage: 'جهد متردد (V AC)',
+      acCurrent: 'شدة تيار (A AC)',
+      dcVoltage: 'جهد مستمر (V DC)',
+      continuity: 'فحص التوصيل (Ω)',
       probeRed: 'المجس الأحمر (+)',
       probeBlack: 'المجس الأسود (-)',
+      clampTarget: 'قياس التيار (بنسة الأمبير / خط الحمل)',
+      clampDesc: 'اختر المحرك أو الملف أو السلك لقياس تيار التشغيل الحقيقي',
       notConnected: 'غير متصل بطرف',
     },
     examplesModal: {
@@ -218,6 +228,8 @@ export const translations: Record<'ar' | 'en', TranslationDictionary> = {
     exportPng: 'Export PNG',
     soundOn: 'Mute Audio',
     soundOff: 'Unmute Audio',
+    themeLight: 'Light Mode',
+    themeDark: 'Dark Mode',
     langEn: 'English',
     langAr: 'العربية',
     presentationMode: 'Presentation Mode',
@@ -263,12 +275,15 @@ export const translations: Record<'ar' | 'en', TranslationDictionary> = {
       closed: 'Closed',
     },
     multimeterModal: {
-      title: 'Virtual Multimeter',
-      acVoltage: 'AC Voltage',
-      dcVoltage: 'DC Voltage',
-      continuity: 'Continuity Beep',
+      title: 'Digital Multimeter & Clamp Meter',
+      acVoltage: 'AC Voltage (V AC)',
+      acCurrent: 'AC Current (A AC)',
+      dcVoltage: 'DC Voltage (V DC)',
+      continuity: 'Continuity & Ohms (Ω)',
       probeRed: 'Red Probe (+)',
       probeBlack: 'Black Probe (-)',
+      clampTarget: 'Current Probe / Clamp Target',
+      clampDesc: 'Select motor, coil, or line to measure true RMS operating current',
       notConnected: 'Not attached to terminal',
     },
     examplesModal: {

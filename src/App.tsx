@@ -29,6 +29,22 @@ export const App: React.FC = () => {
   const [lang, setLang] = useState<'ar' | 'en'>('ar');
   const t = translations[lang];
 
+  // Theme: Dark by default, toggleable to Light
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    return (localStorage.getItem('ccs_theme') as 'dark' | 'light') || 'dark';
+  });
+
+  const handleToggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    localStorage.setItem('ccs_theme', nextTheme);
+    if (nextTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   // Primary State
   const [mode, setMode] = useState<SimulationMode>('design');
   const [isSimRunning, setIsSimRunning] = useState<boolean>(true);
@@ -117,8 +133,8 @@ export const App: React.FC = () => {
       setMode('run');
       clockRef.current.play();
       setIsSimRunning(true);
-      // Run initial step
-      DeviceEvaluator.evaluateStep(graphRef.current, 0.05);
+      // Run initial step in active run mode
+      DeviceEvaluator.evaluateStep(graphRef.current, 0.05, true);
       forceUpdate();
     } else {
       setMode('design');
@@ -126,6 +142,8 @@ export const App: React.FC = () => {
       setIsSimRunning(false);
       soundManager.stopMotorSound();
       setShortCircuitActive(false);
+      // Reset all dynamic runtime states back to resting state
+      DeviceEvaluator.resetToRestingState(graphRef.current);
       forceUpdate();
     }
   };
@@ -318,14 +336,15 @@ export const App: React.FC = () => {
 
   return (
     <div
-      className={`w-screen h-screen flex flex-col bg-industrial-950 text-slate-100 overflow-hidden ${
-        lang === 'ar' ? 'font-cairo' : 'font-sans'
-      }`}
+      className={`w-screen h-screen flex flex-col transition-colors duration-200 overflow-hidden ${
+        theme === 'light' ? 'bg-slate-100 text-slate-800' : 'bg-industrial-950 text-slate-100'
+      } ${lang === 'ar' ? 'font-cairo' : 'font-sans'}`}
     >
       {/* Top Header Toolbar */}
       <AppHeader
         mode={mode}
         lang={lang}
+        theme={theme}
         isSimRunning={isSimRunning}
         simSpeed={simSpeed}
         isMuted={isMuted}
@@ -340,11 +359,9 @@ export const App: React.FC = () => {
         }}
         onStepSim={() => clockRef.current.step(0.05)}
         onResetSim={() => {
-          for (const comp of graphRef.current.components.values()) {
-            if (comp.state.timerElapsed) comp.state.timerElapsed = 0;
-            if (comp.state.motorRpm) comp.state.motorRpm = 0;
-            comp.state.energized = false;
-          }
+          DeviceEvaluator.resetToRestingState(graphRef.current);
+          soundManager.stopMotorSound();
+          setShortCircuitActive(false);
           forceUpdate();
         }}
         onSetSpeed={(spd) => {
@@ -352,6 +369,7 @@ export const App: React.FC = () => {
           setSimSpeed(spd);
         }}
         onToggleLanguage={() => setLang(lang === 'ar' ? 'en' : 'ar')}
+        onToggleTheme={handleToggleTheme}
         onToggleAudio={() => {
           const next = !isMuted;
           setIsMuted(next);
@@ -370,7 +388,7 @@ export const App: React.FC = () => {
       {/* Main Workspace Body */}
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Component Palette */}
-        <SidebarPalette lang={lang} onAddComponent={handleAddComponent} />
+        <SidebarPalette lang={lang} theme={theme} onAddComponent={handleAddComponent} />
 
         {/* Center Interactive 2D Canvas Viewport */}
         <div className="flex-1 h-full relative">
@@ -378,6 +396,7 @@ export const App: React.FC = () => {
             graph={graphRef.current}
             mode={mode}
             animTime={animTimeRef.current}
+            theme={theme}
             selectedComponentIds={selectedComponentIds}
             selectedWireIds={selectedWireIds}
             onSelectComponent={(id, multi) => {
@@ -405,7 +424,11 @@ export const App: React.FC = () => {
               setSelectedWireIds([]);
             }}
             onGraphChanged={() => {
-              DeviceEvaluator.evaluateStep(graphRef.current, 0.05);
+              if (mode === 'run') {
+                DeviceEvaluator.evaluateStep(graphRef.current, 0.05, true);
+              } else {
+                DeviceEvaluator.evaluateStep(graphRef.current, 0, false);
+              }
               forceUpdate();
             }}
             onHoverTerminal={setHoveredTerminalId}
@@ -428,6 +451,7 @@ export const App: React.FC = () => {
             active={multimeterActive}
             onClose={() => setMultimeterActive(false)}
             lang={lang}
+            theme={theme}
           />
 
           {/* Contextual Educational Tooltip on Hover */}
@@ -511,6 +535,7 @@ export const App: React.FC = () => {
         isOpen={isHelpOpen}
         onClose={() => setIsHelpOpen(false)}
         lang={lang}
+        theme={theme}
       />
     </div>
   );

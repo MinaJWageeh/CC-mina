@@ -1,8 +1,15 @@
 import { NetGraph } from '../../core/graph/NetGraph';
 
 export class MotorDynamics {
-  public static evaluate(graph: NetGraph, dt: number): void {
+  public static evaluate(graph: NetGraph, dt: number, isRunning: boolean = true): void {
     for (const comp of graph.components.values()) {
+      if (!isRunning) {
+        comp.state.motorRpm = 0;
+        comp.state.motorDirection = 0;
+        comp.state.energized = false;
+        continue;
+      }
+
       if (comp.type === 'motor_3p_3wire') {
         const tU = comp.terminals.find(t => t.label === 'U');
         const tV = comp.terminals.find(t => t.label === 'V');
@@ -33,7 +40,6 @@ export class MotorDynamics {
         }
 
         let currentRpm = comp.state.motorRpm || 0;
-        const currentDir = comp.state.motorDirection || 0;
 
         // Smooth acceleration / coast down inertia
         if (targetRpm > 0) {

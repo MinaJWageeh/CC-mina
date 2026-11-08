@@ -6,24 +6,28 @@ interface HelpDialogProps {
   isOpen: boolean;
   onClose: () => void;
   lang: 'ar' | 'en';
+  theme?: 'dark' | 'light';
 }
 
 type HelpTab = 'quickstart' | 'wiring' | 'components' | 'tools' | 'shortcuts';
 
-export const HelpDialog: React.FC<HelpDialogProps> = ({ isOpen, onClose, lang }) => {
+export const HelpDialog: React.FC<HelpDialogProps> = ({ isOpen, onClose, lang, theme = 'dark' }) => {
   const [activeTab, setActiveTab] = useState<HelpTab>('quickstart');
 
   if (!isOpen) return null;
 
   const t = translations[lang];
   const isAr = lang === 'ar';
+  const isLight = theme === 'light';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 select-none animate-fadeIn">
       <div
-        className={`bg-industrial-900 border border-sky-500/40 w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] ${
-          isAr ? 'font-cairo' : 'font-sans'
-        }`}
+        className={`w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] border transition-colors ${
+          isLight
+            ? 'bg-white border-slate-300 text-slate-800'
+            : 'bg-industrial-900 border-sky-500/40 text-slate-100'
+        } ${isAr ? 'font-cairo' : 'font-sans'}`}
         dir={isAr ? 'rtl' : 'ltr'}
       >
         {/* Header */}

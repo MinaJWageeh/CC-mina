@@ -8,6 +8,7 @@ interface CanvasViewportProps {
   graph: NetGraph;
   mode: SimulationMode;
   animTime: number;
+  theme?: 'dark' | 'light';
   selectedComponentIds: string[];
   selectedWireIds: string[];
   onSelectComponent: (id: string, multi: boolean) => void;
@@ -24,6 +25,7 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
   graph,
   mode,
   animTime,
+  theme = 'dark',
   selectedComponentIds,
   selectedWireIds,
   onSelectComponent,
@@ -121,8 +123,9 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
     const endX = startX + canvas.width / zoom + gridSize * 2;
     const endY = startY + canvas.height / zoom + gridSize * 2;
 
-    ctx.strokeStyle = 'rgba(51, 65, 85, 0.25)';
-    ctx.lineWidth = 0.8;
+    const isLight = theme === 'light';
+    ctx.strokeStyle = isLight ? 'rgba(148, 163, 184, 0.45)' : 'rgba(51, 65, 85, 0.25)';
+    ctx.lineWidth = isLight ? 0.9 : 0.8;
     ctx.beginPath();
     for (let x = startX; x <= endX; x += gridSize) {
       ctx.moveTo(x, startY);
@@ -140,13 +143,13 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
       const endPos = graph.getEndpointPosition(wire.to);
       if (startPos && endPos) {
         const isSelected = selectedWireIds.includes(wire.id);
-        WireRenderer.renderWire(ctx, wire, startPos, endPos, isSelected, animTime);
+        WireRenderer.renderWire(ctx, wire, startPos, endPos, isSelected, animTime, theme);
       }
     }
 
     // 3. Render all T-Junction dots
     for (const junc of graph.junctions.values()) {
-      WireRenderer.renderJunctionDot(ctx, junc.position, junc.potential, false);
+      WireRenderer.renderJunctionDot(ctx, junc.position, junc.potential, theme);
     }
 
     // 4. Render Active Wire in progress
@@ -163,12 +166,12 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
           potential: 'NONE',
           hasCurrent: false,
         };
-        WireRenderer.renderWire(ctx, tempWire, startPos, mouseCanvasPos, false, animTime);
+        WireRenderer.renderWire(ctx, tempWire, startPos, mouseCanvasPos, false, animTime, theme);
       }
     }
 
     ctx.restore();
-  }, [graph, pan, zoom, animTime, activeWireStart, mouseCanvasPos, isShiftPressed, selectedWireIds]);
+  }, [graph, pan, zoom, animTime, activeWireStart, mouseCanvasPos, isShiftPressed, selectedWireIds, theme]);
 
   // --- MOUSE EVENT HANDLERS ---
 
@@ -367,7 +370,9 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
           setActiveWireStart(null);
         }
       }}
-      className="relative w-full h-full overflow-hidden bg-industrial-950 cursor-default select-none"
+      className={`relative w-full h-full overflow-hidden cursor-default select-none transition-colors duration-200 ${
+        theme === 'light' ? 'bg-slate-100' : 'bg-industrial-950'
+      }`}
     >
       {/* Background Canvas for Grid, Glowing Wires & Junction Dots */}
       <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />
@@ -394,6 +399,7 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
               isSelected={selectedComponentIds.includes(comp.id)}
               mode={mode}
               animTime={animTime}
+              theme={theme}
               onTerminalMouseDown={handleTerminalMouseDown}
               onTerminalMouseUp={handleTerminalMouseUp}
               onTerminalMouseEnter={onHoverTerminal}

@@ -11,11 +11,51 @@ export interface EvaluationStepResult {
 
 export class DeviceEvaluator {
   /**
-   * Runs an iterative convergence pass between the Equipotential Solver and Device Logic.
-   * Runs multiple passes (up to 10) until all coil and contact states stabilize.
+   * Resets all runtime dynamic states (motor RPM, timer countdowns, coils, pushbuttons)
+   * back to their initial de-energized resting state.
    */
-  public static evaluateStep(graph: NetGraph, dt: number): EvaluationStepResult {
-    let solverResult: SolverResult = { hasShortCircuit: false, shortCircuitNets: [], activeNets: new Map() };
+  public static resetToRestingState(graph: NetGraph): void {
+    for (const comp of graph.components.values()) {
+      if (comp.state.timerElapsed !== undefined) comp.state.timerElapsed = 0;
+      if (comp.state.timerRunning !== undefined) comp.state.timerRunning = false;
+      if (comp.state.motorRpm !== undefined) comp.state.motorRpm = 0;
+      if (comp.state.motorDirection !== undefined) comp.state.motorDirection = 0;
+      if (comp.state.energized !== undefined) comp.state.energized = false;
+      if (comp.state.pressed !== undefined) comp.state.pressed = false;
+
+      // Reset contacts to normal resting state
+      if (
+        comp.type === 'aux_contact_no' ||
+        comp.type === 'contactor_main_3p' ||
+        comp.type === 'timer_contact_no'
+      ) {
+        comp.state.closed = false;
+      } else if (
+        comp.type === 'aux_contact_nc' ||
+        comp.type === 'timer_contact_nc' ||
+        comp.type === 'pushbutton_nc'
+      ) {
+        comp.state.closed = true;
+      }
+    }
+    // Re-solve potentials in clean resting state
+    EquipotentialSolver.solve(graph);
+  }
+
+  /**
+   * Runs an iterative convergence pass between the Equipotential Solver and Device Logic.
+   * Runs multiple passes (up to 8) until all coil and contact states stabilize.
+   */
+  public static evaluateStep(
+    graph: NetGraph,
+    dt: number,
+    isRunning: boolean = true
+  ): EvaluationStepResult {
+    let solverResult: SolverResult = {
+      hasShortCircuit: false,
+      shortCircuitNets: [],
+      activeNets: new Map(),
+    };
     const changedDevices: string[] = [];
     const coilsEnergized: string[] = [];
     let contactsChanged = false;
@@ -25,7 +65,7 @@ export class DeviceEvaluator {
       solverResult = EquipotentialSolver.solve(graph);
 
       // If short-circuit occurs, trip upstream MCBs immediately and abort
-      if (solverResult.hasShortCircuit) {
+      if (solverResult.hasShortCircuit && isRunning) {
         for (const comp of graph.components.values()) {
           if (comp.type === 'mcb_3p' || comp.type === 'mcb_1p') {
             if (comp.state.closed !== false && !comp.state.tripped) {
@@ -47,12 +87,12 @@ export class DeviceEvaluator {
           'timer_on_delay',
           'timer_off_delay',
           'timer_flasher',
-          'timer_star_delta'
+          'timer_star_delta',
         ].includes(comp.type);
 
         if (isCoil) {
-          const tA1 = comp.terminals.find(t => t.label === 'A1');
-          const tA2 = comp.terminals.find(t => t.label === 'A2');
+          const tA1 = comp.terminals.find((t) => t.label === 'A1');
+          const tA2 = comp.terminals.find((t) => t.label === 'A2');
 
           const hasLineA1 = tA1 && ['L1', 'L2', 'L3', 'DC_POS'].includes(tA1.potential);
           const hasNeutralA2 = tA2 && ['N', 'DC_NEG'].includes(tA2.potential);
@@ -68,16 +108,16 @@ export class DeviceEvaluator {
             if (isEnergized) coilsEnergized.push(comp.tag);
           }
 
-          // Handle Timer logic if timer
+          // Handle Timer logic if timer and actively running
           if (comp.type.startsWith('timer_')) {
-            const preset = comp.state.timerPreset ?? 5.0; // default 5s
+            const preset = comp.state.timerPreset ?? 5.0;
             let elapsed = comp.state.timerElapsed ?? 0;
 
-            if (isEnergized) {
+            if (isEnergized && isRunning) {
               elapsed = Math.min(preset, elapsed + dt);
               comp.state.timerElapsed = elapsed;
               comp.state.timerRunning = elapsed < preset;
-            } else {
+            } else if (!isEnergized) {
               if (comp.type === 'timer_on_delay') {
                 comp.state.timerElapsed = 0;
                 comp.state.timerRunning = false;
@@ -130,19 +170,25 @@ export class DeviceEvaluator {
     }
 
     // 3. Evaluate Motors (Rotation, Direction, Inertia)
-    MotorDynamics.evaluate(graph, dt);
+    MotorDynamics.evaluate(graph, dt, isRunning);
 
     // 4. Evaluate Indicator Lamps & Buzzers
     for (const comp of graph.components.values()) {
       if (comp.type === 'indicator_lamp') {
         const [t1, t2] = comp.terminals;
-        const hasLine = (t1 && ['L1', 'L2', 'L3'].includes(t1.potential)) || (t2 && ['L1', 'L2', 'L3'].includes(t2.potential));
+        const hasLine =
+          (t1 && ['L1', 'L2', 'L3'].includes(t1.potential)) ||
+          (t2 && ['L1', 'L2', 'L3'].includes(t2.potential));
         const hasNeutral = (t1 && t1.potential === 'N') || (t2 && t2.potential === 'N');
         comp.state.energized = Boolean(hasLine && hasNeutral);
       } else if (comp.type === 'buzzer_alarm') {
         const [t1, t2] = comp.terminals;
-        const hasLine = (t1 && ['L1', 'L2', 'L3', 'DC_POS'].includes(t1.potential)) || (t2 && ['L1', 'L2', 'L3', 'DC_POS'].includes(t2.potential));
-        const hasNeutral = (t1 && ['N', 'DC_NEG'].includes(t1.potential)) || (t2 && ['N', 'DC_NEG'].includes(t2.potential));
+        const hasLine =
+          (t1 && ['L1', 'L2', 'L3', 'DC_POS'].includes(t1.potential)) ||
+          (t2 && ['L1', 'L2', 'L3', 'DC_POS'].includes(t2.potential));
+        const hasNeutral =
+          (t1 && ['N', 'DC_NEG'].includes(t1.potential)) ||
+          (t2 && ['N', 'DC_NEG'].includes(t2.potential));
         comp.state.energized = Boolean(hasLine && hasNeutral);
       }
     }
@@ -151,7 +197,7 @@ export class DeviceEvaluator {
       solverResult,
       changedDevices,
       coilsEnergized,
-      contactsChanged
+      contactsChanged,
     };
   }
 }
