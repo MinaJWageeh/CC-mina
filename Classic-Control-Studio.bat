@@ -7,18 +7,12 @@ echo ====================================================
 echo     Classic Control Studio - محاكي الكلاسيك كنترول
 echo ====================================================
 echo.
-echo جاري فحص ملفات التطبيق...
 
 if not exist "dist\index.html" (
-    echo [1/2] جاري بناء واجهة التطبيق لأول مرة...
+    echo جاري بناء ملفات التطبيق لأول مرة...
     call npm run build
 )
 
-if not exist "dist-electron\main.js" (
-    echo [2/2] جاري تجهيز نواة الديسكتوب...
-    call npm run build:electron
-)
-
-echo جاري فتح البرنامج...
-start "" npx electron .
+echo جاري فتح البرنامج في نافذة ديسكتوب مستقلة...
+start "" node desktop-runner.js
 exit
