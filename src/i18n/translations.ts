@@ -65,6 +65,20 @@ export interface TranslationDictionary {
     testOverload: string;
     open: string;
     closed: string;
+    wireTitle: string;
+    wireRouting: string;
+    orthoRouting: string;
+    freeRouting: string;
+    moveUp: string;
+    moveDown: string;
+    addWaypoint: string;
+    resetPath: string;
+    deleteWire: string;
+    lampRed: string;
+    lampGreen: string;
+    lampYellow: string;
+    lampBlue: string;
+    lampWhite: string;
   };
   multimeterModal: {
     title: string;
@@ -170,6 +184,20 @@ export const translations: Record<'ar' | 'en', TranslationDictionary> = {
       testOverload: 'اختبار الفصل (Test Trip)',
       open: 'مفتوح',
       closed: 'مغلق',
+      wireTitle: 'خصائص ومسار السلك',
+      wireRouting: 'نمط مسار السلك',
+      orthoRouting: 'زوايا هندسية 90° (متعامد)',
+      freeRouting: 'مسار مباشر / قطري (حر)',
+      moveUp: 'رفع المسار للأعلى (⬆ 20px)',
+      moveDown: 'تنزيل المسار للأسفل (⬇ 20px)',
+      addWaypoint: 'إضافة نقطة ثني (Waypoint)',
+      resetPath: 'إعادة ضبط المسار الافتراضي',
+      deleteWire: 'حذف السلك',
+      lampRed: 'أحمر (إيقاف / عطل)',
+      lampGreen: 'أخضر (تشغيل)',
+      lampYellow: 'أصفر (تحذير / انتظار)',
+      lampBlue: 'أزرق (بيان خاص)',
+      lampWhite: 'أبيض (تغذية كهربائية)',
     },
     multimeterModal: {
       title: 'الأفوميتر وبنسة الأمبير (Multimeter & Clamp)',
@@ -273,6 +301,20 @@ export const translations: Record<'ar' | 'en', TranslationDictionary> = {
       testOverload: 'Test Trip',
       open: 'Open',
       closed: 'Closed',
+      wireTitle: 'Wire Properties & Path',
+      wireRouting: 'Routing Style',
+      orthoRouting: 'Orthogonal 90°',
+      freeRouting: 'Direct / Diagonal (Free)',
+      moveUp: 'Nudge Path Up (⬆ 20px)',
+      moveDown: 'Nudge Path Down (⬇ 20px)',
+      addWaypoint: 'Add Bend Waypoint',
+      resetPath: 'Reset to Direct Route',
+      deleteWire: 'Delete Wire',
+      lampRed: 'Red (Stop / Fault)',
+      lampGreen: 'Green (Running)',
+      lampYellow: 'Yellow (Warning / Standby)',
+      lampBlue: 'Blue (Special / Manual)',
+      lampWhite: 'White (Power Available)',
     },
     multimeterModal: {
       title: 'Digital Multimeter & Clamp Meter',

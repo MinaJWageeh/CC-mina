@@ -312,19 +312,57 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({
         ) : null}
 
         {/* Indicator Lamp */}
-        {component.type === 'indicator_lamp' ? (
-          <div className="flex flex-col items-center justify-center w-full mt-2">
-            <div
-              className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
-                state.energized
-                  ? 'bg-emerald-400 border-white shadow-glow-green scale-110'
-                  : 'bg-slate-800/80 border-slate-600'
-              }`}
-            >
-              <div className={`w-3 h-3 rounded-full ${state.energized ? 'bg-white' : 'bg-slate-600'}`} />
+        {component.type === 'indicator_lamp' ? (() => {
+          const color = state.lampColor || 'green';
+          let lampStyles = '';
+          let innerCore = '';
+          let restingStyle = '';
+
+          switch (color) {
+            case 'red':
+              lampStyles = 'bg-rose-500 border-white shadow-[0_0_18px_rgba(244,63,94,0.95)] scale-110';
+              innerCore = 'bg-rose-100 shadow-[0_0_8px_#ffffff]';
+              restingStyle = 'bg-rose-950/50 border-rose-800/80';
+              break;
+            case 'yellow':
+              lampStyles = 'bg-amber-400 border-white shadow-[0_0_18px_rgba(251,191,36,0.95)] scale-110';
+              innerCore = 'bg-amber-100 shadow-[0_0_8px_#ffffff]';
+              restingStyle = 'bg-amber-950/50 border-amber-800/80';
+              break;
+            case 'blue':
+              lampStyles = 'bg-sky-400 border-white shadow-[0_0_18px_rgba(56,189,248,0.95)] scale-110';
+              innerCore = 'bg-sky-100 shadow-[0_0_8px_#ffffff]';
+              restingStyle = 'bg-sky-950/50 border-sky-800/80';
+              break;
+            case 'white':
+              lampStyles = 'bg-slate-100 border-sky-200 shadow-[0_0_20px_rgba(255,255,255,0.95)] scale-110';
+              innerCore = 'bg-white shadow-[0_0_8px_#ffffff]';
+              restingStyle = 'bg-slate-800/90 border-slate-500';
+              break;
+            case 'green':
+            default:
+              lampStyles = 'bg-emerald-400 border-white shadow-[0_0_18px_rgba(52,211,153,0.95)] scale-110';
+              innerCore = 'bg-emerald-100 shadow-[0_0_8px_#ffffff]';
+              restingStyle = 'bg-emerald-950/50 border-emerald-800/80';
+              break;
+          }
+
+          return (
+            <div className="flex flex-col items-center justify-center w-full mt-2">
+              <div
+                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                  state.energized ? lampStyles : restingStyle
+                }`}
+              >
+                <div
+                  className={`w-3 h-3 rounded-full transition-all ${
+                    state.energized ? innerCore : 'bg-slate-600/70'
+                  }`}
+                />
+              </div>
             </div>
-          </div>
-        ) : null}
+          );
+        })() : null}
 
         {/* Buzzer Alarm */}
         {component.type === 'buzzer_alarm' ? (

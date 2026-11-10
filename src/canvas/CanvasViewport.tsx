@@ -62,6 +62,16 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
   const [marqueeStart, setMarqueeStart] = useState<Point2D | null>(null);
   const [marqueeEnd, setMarqueeEnd] = useState<Point2D | null>(null);
 
+  // Draggable Waypoints for Selected Wires
+  const [draggingWaypoint, setDraggingWaypoint] = useState<{
+    wireId: string;
+    waypointIndex: number;
+  } | null>(null);
+  const [hoveredWaypoint, setHoveredWaypoint] = useState<{
+    wireId: string;
+    waypointIndex: number;
+  } | null>(null);
+
   // Track Shift & Space keys for orthogonal snapping and panning
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -144,6 +154,14 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
       if (startPos && endPos) {
         const isSelected = selectedWireIds.includes(wire.id);
         WireRenderer.renderWire(ctx, wire, startPos, endPos, isSelected, animTime, theme);
+
+        if (isSelected && mode === 'design') {
+          const hIndex =
+            hoveredWaypoint && hoveredWaypoint.wireId === wire.id
+              ? hoveredWaypoint.waypointIndex
+              : null;
+          WireRenderer.renderWaypointHandles(ctx, wire, startPos, endPos, hIndex);
+        }
       }
     }
 
@@ -175,6 +193,29 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
 
   // --- MOUSE EVENT HANDLERS ---
 
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    if (mode !== 'design' || selectedWireIds.length === 0) return;
+    const worldPos = screenToWorld(e.clientX, e.clientY);
+
+    for (const wireId of selectedWireIds) {
+      const wire = graph.wires.get(wireId);
+      if (!wire) continue;
+      const pStart = graph.getEndpointPosition(wire.from);
+      const pEnd = graph.getEndpointPosition(wire.to);
+      if (!pStart || !pEnd) continue;
+
+      const allPoints = WireRenderer.getWirePathPoints(wire, pStart, pEnd);
+      for (let i = 1; i < allPoints.length - 1; i++) {
+        const pt = allPoints[i];
+        if (Math.hypot(worldPos.x - pt.x, worldPos.y - pt.y) <= 12) {
+          wire.waypoints.splice(i - 1, 1);
+          onGraphChanged();
+          return;
+        }
+      }
+    }
+  };
+
   const handleMouseDown = (e: React.MouseEvent) => {
     // Middle click or Space+Click initiates canvas panning
     if (e.button === 1 || (e.button === 0 && isSpacePressed)) {
@@ -186,28 +227,82 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
     if (e.button === 0) {
       const worldPos = screenToWorld(e.clientX, e.clientY);
 
-      // Check if user clicked an existing wire to branch or select
+      // 1. Check if user clicked an interactive Waypoint handle or segment midpoint of a selected wire
+      if (mode === 'design' && selectedWireIds.length > 0 && !activeWireStart) {
+        let handleHit = false;
+        for (const wireId of selectedWireIds) {
+          const wire = graph.wires.get(wireId);
+          if (!wire) continue;
+          const pStart = graph.getEndpointPosition(wire.from);
+          const pEnd = graph.getEndpointPosition(wire.to);
+          if (!pStart || !pEnd) continue;
+
+          const allPoints = WireRenderer.getWirePathPoints(wire, pStart, pEnd);
+
+          // A. Click on existing waypoint handle to drag it
+          for (let i = 1; i < allPoints.length - 1; i++) {
+            const pt = allPoints[i];
+            if (Math.hypot(worldPos.x - pt.x, worldPos.y - pt.y) <= 12) {
+              if (wire.waypoints.length === 0) {
+                wire.waypoints = WireRenderer.getOrthoWaypoints(pStart, pEnd);
+              }
+              setDraggingWaypoint({ wireId: wire.id, waypointIndex: i - 1 });
+              handleHit = true;
+              break;
+            }
+          }
+          if (handleHit) break;
+
+          // B. Click on segment midpoint to create a new bend and drag it
+          for (let i = 0; i < allPoints.length - 1; i++) {
+            const pA = allPoints[i];
+            const pB = allPoints[i + 1];
+            const mid = { x: (pA.x + pB.x) / 2, y: (pA.y + pB.y) / 2 };
+            if (Math.hypot(worldPos.x - mid.x, worldPos.y - mid.y) <= 10) {
+              if (wire.waypoints.length === 0) {
+                wire.waypoints = WireRenderer.getOrthoWaypoints(pStart, pEnd);
+              }
+              wire.waypoints.splice(i, 0, { ...mid });
+              setDraggingWaypoint({ wireId: wire.id, waypointIndex: i });
+              onGraphChanged();
+              handleHit = true;
+              break;
+            }
+          }
+          if (handleHit) break;
+        }
+
+        if (handleHit) return;
+      }
+
+      // 2. Check if user clicked an existing wire along ANY of its path segments
       let wireClicked = false;
       for (const wire of graph.wires.values()) {
         const p1 = graph.getEndpointPosition(wire.from);
         const p2 = graph.getEndpointPosition(wire.to);
         if (p1 && p2) {
-          const { dist, proj } = NetGraph.pointToSegmentDistance(worldPos, p1, p2);
-          if (dist < 8) {
-            // If currently routing a wire, bisect and branch!
-            if (activeWireStart) {
-              graph.splitWireAtPoint(wire.id, proj, activeWireStart);
-              setActiveWireStart(null);
-              onGraphChanged();
-              wireClicked = true;
-              break;
-            } else {
-              // Select wire
-              onSelectWire(wire.id, e.ctrlKey || e.metaKey);
-              wireClicked = true;
-              break;
+          const pathPoints = WireRenderer.getWirePathPoints(wire, p1, p2);
+          for (let s = 0; s < pathPoints.length - 1; s++) {
+            const segA = pathPoints[s];
+            const segB = pathPoints[s + 1];
+            const { dist, proj } = NetGraph.pointToSegmentDistance(worldPos, segA, segB);
+            if (dist < 8) {
+              // If currently routing a wire, bisect and branch!
+              if (activeWireStart) {
+                graph.splitWireAtPoint(wire.id, proj, activeWireStart);
+                setActiveWireStart(null);
+                onGraphChanged();
+                wireClicked = true;
+                break;
+              } else {
+                // Select wire
+                onSelectWire(wire.id, e.ctrlKey || e.metaKey);
+                wireClicked = true;
+                break;
+              }
             }
           }
+          if (wireClicked) break;
         }
       }
 
@@ -231,6 +326,35 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
       return;
     }
 
+    // Dragging waypoint of selected wire
+    if (draggingWaypoint) {
+      const wire = graph.wires.get(draggingWaypoint.wireId);
+      if (wire && wire.waypoints && wire.waypoints[draggingWaypoint.waypointIndex]) {
+        const snapGrid = 10;
+        let targetX = Math.round(worldPos.x / snapGrid) * snapGrid;
+        let targetY = Math.round(worldPos.y / snapGrid) * snapGrid;
+
+        // Shift key locks to horizontal or vertical axis relative to neighboring points
+        if (e.shiftKey) {
+          const pStart = graph.getEndpointPosition(wire.from)!;
+          const pEnd = graph.getEndpointPosition(wire.to)!;
+          const allPoints = WireRenderer.getWirePathPoints(wire, pStart, pEnd);
+          const prevPt = allPoints[draggingWaypoint.waypointIndex] || pStart;
+          const dx = Math.abs(targetX - prevPt.x);
+          const dy = Math.abs(targetY - prevPt.y);
+          if (dx > dy) {
+            targetY = prevPt.y;
+          } else {
+            targetX = prevPt.x;
+          }
+        }
+
+        wire.waypoints[draggingWaypoint.waypointIndex] = { x: targetX, y: targetY };
+        onGraphChanged();
+        return;
+      }
+    }
+
     // Moving component
     if (draggingCompId) {
       const snapGrid = 10;
@@ -239,6 +363,28 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
       graph.moveComponent(draggingCompId, { x: targetX, y: targetY });
       onGraphChanged();
       return;
+    }
+
+    // Check hover over waypoints for visual highlight
+    if (mode === 'design' && selectedWireIds.length > 0) {
+      let hovered: { wireId: string; waypointIndex: number } | null = null;
+      for (const wireId of selectedWireIds) {
+        const wire = graph.wires.get(wireId);
+        if (!wire) continue;
+        const pStart = graph.getEndpointPosition(wire.from);
+        const pEnd = graph.getEndpointPosition(wire.to);
+        if (!pStart || !pEnd) continue;
+        const allPoints = WireRenderer.getWirePathPoints(wire, pStart, pEnd);
+        for (let i = 1; i < allPoints.length - 1; i++) {
+          const pt = allPoints[i];
+          if (Math.hypot(worldPos.x - pt.x, worldPos.y - pt.y) <= 12) {
+            hovered = { wireId, waypointIndex: i - 1 };
+            break;
+          }
+        }
+        if (hovered) break;
+      }
+      setHoveredWaypoint(hovered);
     }
 
     // Updating marquee selection box
@@ -250,6 +396,10 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
   const handleMouseUp = () => {
     setIsPanning(false);
     setDraggingCompId(null);
+    if (draggingWaypoint) {
+      setDraggingWaypoint(null);
+      onGraphChanged();
+    }
 
     // Finalize Marquee Box selection
     if (marqueeStart && marqueeEnd) {
@@ -363,6 +513,7 @@ export const CanvasViewport: React.FC<CanvasViewportProps> = ({
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
+      onDoubleClick={handleDoubleClick}
       onWheel={handleWheel}
       onContextMenu={(e) => {
         if (activeWireStart) {

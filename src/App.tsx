@@ -320,6 +320,12 @@ export const App: React.FC = () => {
       ? graphRef.current.components.get(selectedComponentIds[0]) || null
       : null;
 
+  // Selected wire for Properties Inspector
+  const selectedWire =
+    selectedWireIds.length === 1 && selectedComponentIds.length === 0
+      ? graphRef.current.wires.get(selectedWireIds[0]) || null
+      : null;
+
   // Hovered terminal details for Tooltip
   let hoveredTerminal: Terminal | null = null;
   let hoveredComponent: DeviceComponent | null = selectedComponent;
@@ -487,25 +493,50 @@ export const App: React.FC = () => {
         </div>
 
         {/* Right Properties Inspector */}
-        {selectedComponent && mode === 'design' && (
+        {(selectedComponent || selectedWire) && mode === 'design' && (
           <PropertiesInspector
             component={selectedComponent}
+            wire={selectedWire}
             graph={graphRef.current}
             lang={lang}
             onUpdateComponent={(updated) => {
               graphRef.current.updateComponent(updated);
               forceUpdate();
             }}
-            onRotate={() => {
-              graphRef.current.rotateComponent(selectedComponent.id);
+            onUpdateWire={(updatedWire) => {
+              graphRef.current.wires.set(updatedWire.id, updatedWire);
               forceUpdate();
             }}
-            onDelete={() => {
-              graphRef.current.removeComponent(selectedComponent.id);
+            onRotate={
+              selectedComponent
+                ? () => {
+                    graphRef.current.rotateComponent(selectedComponent.id);
+                    forceUpdate();
+                  }
+                : undefined
+            }
+            onDelete={
+              selectedComponent
+                ? () => {
+                    graphRef.current.removeComponent(selectedComponent.id);
+                    setSelectedComponentIds([]);
+                    forceUpdate();
+                  }
+                : undefined
+            }
+            onDeleteWire={
+              selectedWire
+                ? () => {
+                    graphRef.current.removeWire(selectedWire.id);
+                    setSelectedWireIds([]);
+                    forceUpdate();
+                  }
+                : undefined
+            }
+            onClose={() => {
               setSelectedComponentIds([]);
-              forceUpdate();
+              setSelectedWireIds([]);
             }}
-            onClose={() => setSelectedComponentIds([])}
           />
         )}
       </div>

@@ -70,6 +70,20 @@ export class WireRenderer {
   }
 
   /**
+   * Returns all points of the wire including start, intermediate waypoints, and end.
+   */
+  public static getWirePathPoints(wire: Wire, start: Point2D, end: Point2D): Point2D[] {
+    const points: Point2D[] = [start];
+    if (wire.routingMode === 'ortho' && wire.waypoints.length === 0) {
+      points.push(...this.getOrthoWaypoints(start, end));
+    } else {
+      points.push(...wire.waypoints);
+    }
+    points.push(end);
+    return points;
+  }
+
+  /**
    * Draws a complete wire path on Canvas2D with multi-pass glow and current flow dashes.
    */
   public static renderWire(
@@ -82,14 +96,7 @@ export class WireRenderer {
     theme: 'dark' | 'light' = 'dark'
   ): void {
     const { stroke, glow } = this.getPotentialColor(wire.potential, theme);
-    const points: Point2D[] = [start];
-
-    if (wire.routingMode === 'ortho' && wire.waypoints.length === 0) {
-      points.push(...this.getOrthoWaypoints(start, end));
-    } else {
-      points.push(...wire.waypoints);
-    }
-    points.push(end);
+    const points = this.getWirePathPoints(wire, start, end);
 
     ctx.save();
     ctx.lineCap = 'round';
@@ -176,6 +183,67 @@ export class WireRenderer {
     ctx.beginPath();
     ctx.arc(pos.x, pos.y, 1.2, 0, Math.PI * 2);
     ctx.fill();
+
+    ctx.restore();
+  }
+
+  /**
+   * Renders interactive waypoint handles and segment midpoints for a selected wire.
+   */
+  public static renderWaypointHandles(
+    ctx: CanvasRenderingContext2D,
+    wire: Wire,
+    start: Point2D,
+    end: Point2D,
+    hoveredIndex: number | null = null
+  ): void {
+    const points = this.getWirePathPoints(wire, start, end);
+    if (points.length < 2) return;
+
+    ctx.save();
+
+    // 1. Render segment midpoints (smaller cyan dots for adding bends)
+    for (let i = 0; i < points.length - 1; i++) {
+      const pA = points[i];
+      const pB = points[i + 1];
+      const mid = { x: (pA.x + pB.x) / 2, y: (pA.y + pB.y) / 2 };
+
+      ctx.fillStyle = '#0284c7';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(mid.x, mid.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    // 2. Render actual draggable waypoint handles
+    for (let i = 1; i < points.length - 1; i++) {
+      const pt = points[i];
+      const wpIndex = i - 1;
+      const isHovered = hoveredIndex === wpIndex;
+
+      // Glow halo
+      ctx.fillStyle = isHovered ? 'rgba(245, 158, 11, 0.45)' : 'rgba(56, 189, 248, 0.4)';
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, isHovered ? 10 : 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Handle circle
+      ctx.fillStyle = isHovered ? '#f59e0b' : '#38bdf8';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, isHovered ? 6 : 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Center pivot dot
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     ctx.restore();
   }
