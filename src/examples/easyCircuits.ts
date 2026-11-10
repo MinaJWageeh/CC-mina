@@ -449,7 +449,7 @@ export const easyCircuits: { id: string; titleEn: string; titleAr: string; descE
           id: 'pwr_1p',
           type: 'source_1p_n',
           category: 'power',
-          tag: 'L - N - PE (230V)',
+          tag: 'L - N - PE (220V)',
           position: { x: 100, y: 40 },
           rotation: 0,
           terminals: [

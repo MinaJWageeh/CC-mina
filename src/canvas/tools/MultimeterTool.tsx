@@ -82,13 +82,13 @@ export const MultimeterTool: React.FC<MultimeterToolProps> = ({
   if (mode === 'AC_V') {
     unit = 'V AC';
     if (['L1', 'L2', 'L3'].includes(pRed) && pBlack === 'N') {
-      const v = 230.5 + jitter * 10;
+      const v = 220.2 + jitter * 8;
       displayValue = v.toFixed(1);
     } else if (pRed === 'N' && ['L1', 'L2', 'L3'].includes(pBlack)) {
-      const v = 230.5 + jitter * 10;
+      const v = 220.2 + jitter * 8;
       displayValue = v.toFixed(1);
     } else if (['L1', 'L2', 'L3'].includes(pRed) && ['L1', 'L2', 'L3'].includes(pBlack) && pRed !== pBlack) {
-      const v = 400.2 + jitter * 15;
+      const v = 380.4 + jitter * 12;
       displayValue = v.toFixed(1);
     } else if (pRed === pBlack && pRed !== 'NONE') {
       displayValue = '0.0';

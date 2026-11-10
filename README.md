@@ -1,13 +1,16 @@
 # Classic Control Studio (Next-Gen EKTS Desktop Simulator)
 ### محاكي دوائر التحكم الكلاسيكي والتحكم الآلي المتطور
 
+[![Live Web Demo](https://img.shields.io/badge/Live%20Demo-Try%20Online%20Now-emerald?style=for-the-badge&logo=googlechrome)](https://minajwageeh.github.io/CC-mina/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.0-61dafb.svg)](https://react.dev/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38bdf8.svg)](https://tailwindcss.com/)
-[![Electron](https://img.shields.io/badge/Electron-Desktop-47848f.svg)](https://www.electronjs.org/)
-[![Tests](https://img.shields.io/badge/Tests-5%20Passed-emerald.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-6%20Passed-emerald.svg)]()
 
-تطبيق ديسكتوب هندسي احترافي ومحاكي متقدم لدوائر التحكم الكلاسيكي (Classic Control) مصمم ليكون بديلاً عصرياً شاملاً لبرنامج EKTS القديم، مع واجهة داكنة مريحة للعين، تفاعلية وسلاسة فائقة بمعدل 60+ إطار في الثانية، ودعم كامل للغتين العربية والإنجليزية.
+> 🌐 **جرب التطبيق مباشرة عبر المتصفح أونلاين (بدون أي تحميل):**  
+> 👉 **[https://minajwageeh.github.io/CC-mina/](https://minajwageeh.github.io/CC-mina/)**
+
+تطبيق هندسي احترافي ومحاكي متقدم لدوائر التحكم الكلاسيكي (Classic Control) مصمم ليكون بديلاً عصرياً شاملاً لبرنامج EKTS القديم، مع واجهة داكنة وفاتحة، تفاعلية وسلاسة فائقة بمعدل 60+ إطار في الثانية، ودعم كامل للغتين العربية والإنجليزية.
 
 ---
 
