@@ -9,7 +9,7 @@ interface HelpDialogProps {
   theme?: 'dark' | 'light';
 }
 
-type HelpTab = 'quickstart' | 'wiring' | 'components' | 'tools' | 'shortcuts';
+type HelpTab = 'quickstart' | 'wiring' | 'components' | 'tools' | 'shortcuts' | 'about';
 
 export const HelpDialog: React.FC<HelpDialogProps> = ({ isOpen, onClose, lang, theme = 'dark' }) => {
   const [activeTab, setActiveTab] = useState<HelpTab>('quickstart');
@@ -108,6 +108,17 @@ export const HelpDialog: React.FC<HelpDialogProps> = ({ isOpen, onClose, lang, t
           >
             <span>⌨️</span>
             <span>{t.helpModal.tabShortcuts}</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('about')}
+            className={`py-2 px-3 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'about'
+                ? 'bg-sky-500 text-white shadow-md shadow-sky-500/20'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <span>👨‍💻</span>
+            <span>{t.helpModal.tabAbout}</span>
           </button>
         </div>
 
@@ -416,14 +427,131 @@ export const HelpDialog: React.FC<HelpDialogProps> = ({ isOpen, onClose, lang, t
               </div>
             </div>
           )}
+
+          {/* TAB 6: ABOUT DEVELOPER & COPYRIGHT */}
+          {activeTab === 'about' && (
+            <div className="space-y-4">
+              <div className="bg-slate-950/70 border border-sky-500/30 rounded-2xl p-5 flex flex-col md:flex-row items-center gap-5">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 p-0.5 shadow-lg shadow-sky-500/20 shrink-0 flex items-center justify-center">
+                  <div className="w-full h-full bg-industrial-950 rounded-[14px] flex items-center justify-center text-3xl">
+                    ⚡
+                  </div>
+                </div>
+                <div className="flex-1 text-center md:text-start space-y-1">
+                  <div className="flex items-center justify-center md:justify-start gap-2 flex-wrap">
+                    <h3 className="text-base font-extrabold text-white">Classic Control Studio</h3>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30">
+                      v1.0.0 Stable
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    {isAr
+                      ? 'محاكي دوائر التحكم الكلاسيكي والتحكم الآلي الصناعي المتطور'
+                      : 'Next-Gen Industrial Classic Control & Electrical Simulation Studio'}
+                  </p>
+                  <p className="text-xs text-sky-400 font-bold">
+                    {isAr ? 'تطوير وتصميم المهندس: ' : 'Designed & Developed by: '}
+                    <span className="text-white font-mono text-sm underline decoration-sky-500">Eng. Mina Joseph</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Developer Contact Card */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 space-y-2.5">
+                  <h4 className="text-xs font-bold text-amber-400 flex items-center gap-2">
+                    <span>📞</span>
+                    <span>{isAr ? 'معلومات التواصل المباشر' : 'Direct Contact & Phone'}</span>
+                  </h4>
+                  <div className="space-y-2 pt-1 text-xs">
+                    <div className="flex items-center justify-between bg-industrial-900/80 p-2.5 rounded-xl border border-slate-800">
+                      <span className="text-slate-400">{isAr ? 'رقم الهاتف المباشر:' : 'Direct Phone:'}</span>
+                      <a
+                        href="tel:01098734124"
+                        className="text-emerald-400 font-mono font-bold hover:underline flex items-center gap-1.5"
+                        dir="ltr"
+                      >
+                        <span>01098734124</span>
+                        <span>📱</span>
+                      </a>
+                    </div>
+                    <div className="flex items-center justify-between bg-industrial-900/80 p-2.5 rounded-xl border border-slate-800">
+                      <span className="text-slate-400">{isAr ? 'محادثة واتساب سريعة:' : 'WhatsApp Chat:'}</span>
+                      <a
+                        href="https://wa.me/201098734124"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-emerald-400 font-semibold hover:underline flex items-center gap-1 font-mono"
+                      >
+                        <span>+20 1098734124</span>
+                        <span>💬</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 space-y-2.5">
+                  <h4 className="text-xs font-bold text-sky-400 flex items-center gap-2">
+                    <span>🌐</span>
+                    <span>{isAr ? 'الروابط وحساب المطور' : 'Developer Links & Code'}</span>
+                  </h4>
+                  <div className="space-y-2 pt-1 text-xs">
+                    <div className="flex items-center justify-between bg-industrial-900/80 p-2.5 rounded-xl border border-slate-800">
+                      <span className="text-slate-400">{isAr ? 'حساب المطور (GitHub):' : 'GitHub Profile:'}</span>
+                      <a
+                        href="https://github.com/MinaJWageeh"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sky-400 font-mono font-bold hover:underline"
+                      >
+                        github.com/MinaJWageeh
+                      </a>
+                    </div>
+                    <div className="flex items-center justify-between bg-industrial-900/80 p-2.5 rounded-xl border border-slate-800">
+                      <span className="text-slate-400">{isAr ? 'مستودع المشروع الكودي:' : 'Repository:'}</span>
+                      <a
+                        href="https://github.com/MinaJWageeh/CC-mina"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sky-400 font-mono font-bold hover:underline"
+                      >
+                        CC-mina
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Copyright Notice Box */}
+              <div className="bg-gradient-to-r from-industrial-950 via-slate-900 to-industrial-950 border border-slate-800 rounded-2xl p-4 text-center space-y-1.5">
+                <p className="text-xs font-bold text-slate-200">
+                  © 2026 Classic Control Studio. All Rights Reserved.
+                </p>
+                <p className="text-[11px] text-slate-400 font-mono">
+                  Copyright © <span className="text-sky-400 font-bold">Eng. Mina Joseph</span> • Phone: 01098734124
+                </p>
+                <p className="text-[10px] text-slate-500 pt-0.5">
+                  {isAr
+                    ? 'مشروع هندسي مجاني ومفتوح المصدر لدعم طلاب الهندسة والفنيين والمحاضرين.'
+                    : 'Free & Open-Source engineering project designed to empower electrical training and education.'}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
-        <div className="p-3 bg-industrial-950 border-t border-slate-800 flex justify-between items-center text-[11px] text-slate-400">
-          <span>{isAr ? 'Classic Control Studio • صُنع خصيصاً للمهندسين والفنيين والطلاب' : 'Classic Control Studio • Engineered for electrical professionals'}</span>
+        <div className="p-3 bg-industrial-950 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-2 text-[11px] text-slate-400">
+          <div className="flex items-center gap-2 flex-wrap text-center sm:text-start">
+            <span>© 2026 Classic Control Studio</span>
+            <span className="text-slate-600">•</span>
+            <span>{isAr ? 'حقوق الملكية للمهندس' : 'Copyright ©'} <strong className="text-sky-400">Eng. Mina Joseph</strong></span>
+            <span className="text-slate-600">•</span>
+            <span className="text-emerald-400 font-mono">📞 01098734124</span>
+          </div>
           <button
             onClick={onClose}
-            className="px-4 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl shadow transition-colors"
+            className="px-4 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl shadow transition-colors shrink-0"
           >
             {isAr ? 'حسناً، فهمت' : 'Got it!'}
           </button>

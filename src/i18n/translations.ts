@@ -37,6 +37,7 @@ export interface TranslationDictionary {
     tabComponents: string;
     tabTools: string;
     tabShortcuts: string;
+    tabAbout: string;
   };
   categories: {
     power: string;
@@ -156,6 +157,7 @@ export const translations: Record<'ar' | 'en', TranslationDictionary> = {
       tabComponents: '🔘 العناصر والتحكم اللحظي',
       tabTools: '📟 أجهزة القياس والشرح',
       tabShortcuts: '⌨️ اختصارات الكيبورد',
+      tabAbout: '👨‍💻 عن المطور والبرنامج',
     },
     categories: {
       power: 'مصادر القدرة والتغذية',
@@ -273,6 +275,7 @@ export const translations: Record<'ar' | 'en', TranslationDictionary> = {
       tabComponents: '🔘 Components & Controls',
       tabTools: '📟 Instruments & Tools',
       tabShortcuts: '⌨️ Shortcuts',
+      tabAbout: '👨‍💻 About Developer',
     },
     categories: {
       power: 'Power Sources',

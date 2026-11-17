@@ -16,7 +16,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
   project,
   lang,
 }) => {
-  const [designerName, setDesignerName] = useState<string>(project.metadata.author || 'Mina J. Wageeh');
+  const [designerName, setDesignerName] = useState<string>(project.metadata.author || 'Eng. Mina Joseph');
   const [projectTitle, setProjectTitle] = useState<string>(project.metadata.title || 'Classic Control Schematic');
   const [revision, setRevision] = useState<string>('Rev 1.0');
 

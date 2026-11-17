@@ -146,5 +146,15 @@ npm test
 ```
 
 ---
-*تم تطوير وتصميم المحاكي بواسطة **Mina J. Wageeh**.*
-*Open-Source & Proudly Built for Engineers and Students.*
+
+## 👨‍💻 عن المطور وحقوق الملكية (About & Copyright)
+* **المطور / Developer:** المهندس مينا جوزيف — **Eng. Mina Joseph**
+* **رقم الهاتف / Mobile & WhatsApp:** `01098734124` | [+20 1098734124](tel:01098734124) | [WhatsApp Chat](https://wa.me/201098734124)
+* **حساب المطور على GitHub:** [https://github.com/MinaJWageeh](https://github.com/MinaJWageeh)
+* **المستودع الرئيسي / Repository:** [https://github.com/MinaJWageeh/CC-mina](https://github.com/MinaJWageeh/CC-mina)
+* **رابط التجربة المباشرة أونلاين:** [https://minajwageeh.github.io/CC-mina/](https://minajwageeh.github.io/CC-mina/)
+
+```text
+© 2026 Classic Control Studio. All Rights Reserved.
+Designed & Developed by Eng. Mina Joseph (01098734124)
+```
